@@ -96,7 +96,9 @@ def jitter(batch_data, clip, sigma):
             BxNx3 jittered batch of point clouds
     """
     device = batch_data.device
-    assert(clip > 0), "clip is 0 or less than 0"
+    assert(clip >= 0), "clip is less than 0"
+    if clip == 0:
+        return batch_data
     jittered_data = torch.clamp(sigma * torch.randn(batch_data.shape,device=device), -1*clip, clip)  #clip
     jittered_data += batch_data
     return jittered_data

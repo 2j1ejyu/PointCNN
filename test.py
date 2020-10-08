@@ -1,6 +1,5 @@
 import torch
 
-t = torch.arange(10)
-print(t)
-a = torch.arange(t.shape[0])
-print(a)
+
+p = torch.arange(10).unsqueeze(-1)
+print(p.shape)

@@ -70,7 +70,7 @@ class XConv(torch.nn.Module):
         
     def forward(self, x, pos, idx, neighbor_idx): # N1: B*inN, N2: B*outN
         # x: (N1,C), pos: (N1,dim), idx: (N2,1), neighbor_idx: (N2,K)
-        N2, K = neighbor_idx.shape
+        K = neighbor_idx.shape[1]
         
         relPos = pos[neighbor_idx]-pos[idx]   # (N2,K,dim) relative positions
         x_star = self.mlp_delta(relPos.view(-1,self.dim)).view(-1, K, self.C_delta) 
@@ -83,7 +83,7 @@ class XConv(torch.nn.Module):
         transform_matrix = self.mlp_X(relPos.view(-1, K*self.dim))  # (N2,K,K)
 
         x_transformed = torch.bmm(transform_matrix, x_star)  # (N2,K, C_delta + C)
-        x_transformed = x_transformed.transpose(1,2).contiguous() # (N2,C_delta + C, K)
+        x_transformed = x_transformed.transpose(1,2) # (N2,C_delta + C, K)
 
         out = self.Conv(x_transformed)    # (N2, C_out)
 
@@ -95,25 +95,25 @@ class PointCNNConvDown(torch.nn.Module):
         super(PointCNNConvDown, self).__init__()
         self.K = K
         self.outN = outN
-        self.sampler = FPSSampler(num_to_sample=outN) 
+        self.sampler = RandomSampler(num_to_sample=outN) 
         self.neighbour_finder = DilatedKNNNeighbourFinder(K, D) 
         self.Xconv = XConv(C_in, C_out, 3, K)
 
     def forward(self, data):
         data_out = Batch()
-        x, pos, batch = data.x, data.pos, data.batch # x: (B*inN,Cin), pos: (B*inN,3), batch: (B*inN)
-        if batch.shape[0]/(batch[-1]+1) == self.outN:
-            idx = torch.arange(batch.shape[0], device = pos.device)
+        # data.x: (B*inN,Cin), data.pos: (B*inN,3), data.batch: (B*inN)
+        if data.batch.shape[0]/(data.batch[-1]+1) == self.outN:
+            idx = torch.arange(data.batch.shape[0], device = data.pos.device)
         else:
-            idx = self.sampler(pos, batch=batch)   #index of representative points: (B*outN)
+            idx = self.sampler(data.pos, batch=data.batch)   #index of representative points: (B*outN)
         # data_out.idx = idx
-        data_out.pos = pos[idx]  # (B*outN,3)
-        data_out.batch = batch[idx]  # (B*outN)
-        _, neighbor_idx = self.neighbour_finder(pos, pos[idx], batch_x=batch, batch_y=batch[idx])
+        data_out.pos = data.pos[idx]  # (B*outN,3)
+        data_out.batch = data.batch[idx]  # (B*outN)
+        _, neighbor_idx = self.neighbour_finder(data.pos, data.pos[idx], batch_x=data.batch, batch_y=data.batch[idx])
         neighbor_idx = neighbor_idx.view(-1, self.K) #(B*outN*K) -> (B*outN,K)
         idx = idx.unsqueeze(-1)   #(B*outN) -> (B*outN,1)
 
-        data_out.x = self.Xconv(x, pos, idx, neighbor_idx)  # (B*outN, C_out)
+        data_out.x = self.Xconv(data.x, data.pos, idx, neighbor_idx)  # (B*outN, C_out)
 
         """
         for key in data.keys:

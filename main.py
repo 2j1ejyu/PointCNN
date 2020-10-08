@@ -17,18 +17,18 @@ def main():
 
     parser = argparse.ArgumentParser(description="Jaewon's PointCloud")
     #parser.add_argument('--seed', type=int, default=777)
-    parser.add_argument('--num_epochs', type=int, default=250)
-    parser.add_argument('--dataset', type=str, default='ModelNet10')
+    parser.add_argument('--num_epochs', type=int, default=200)
+    parser.add_argument('--dataset', type=str, default='ModelNet40')
     parser.add_argument('--val_split', type=str, default='False') # Split 1/5 of train data if True
     parser.add_argument('--model', type=str, default='PointCNN')
     parser.add_argument('--num_points', type=int, default=1024)
-    parser.add_argument('--batch_size', type=int, default=32)
+    parser.add_argument('--batch_size', type=int, default=64)
     parser.add_argument('--lr', type=float, default=0.01)
     parser.add_argument('--lr_decay', type=float, default=0.9)
     parser.add_argument('--lr_decay_epoch', type=int, default=200000)
 
-    parser.add_argument('--use_wandb', type=str, default='False')
-    parser.add_argument('--project_title', type=str, default='no_title')
+    parser.add_argument('--use_wandb', type=str, default='True')
+    parser.add_argument('--project_title', type=str, default='PointCNN')
 
     parser.add_argument('--model_save', type=str, default='False')
     parser.add_argument('--use_augmentation', type=str, default='True', help='conventional augmentation') # False: vanilla
@@ -37,10 +37,10 @@ def main():
     parser.add_argument('--rotate_axis', type=str, default='z')
     parser.add_argument('--rotate_gaussian', type=str, default='False')
     parser.add_argument('--jitter_sigma', type=float, default=0.01)
-    parser.add_argument('--jitter_clip', type=float, default=0.03)
+    parser.add_argument('--jitter_clip', type=float, default=0)
     parser.add_argument('--shift_range', type=float, default=0.1)
-    parser.add_argument('--scale_low', type=float, default=0.8)
-    parser.add_argument('--scale_high', type=float, default=1.25)
+    parser.add_argument('--scale_low', type=float, default=0.9)
+    parser.add_argument('--scale_high', type=float, default=1.1)
     parser.add_argument('--shuffle', type=str, default = 'True')
 
     args = parser.parse_args()

@@ -60,6 +60,7 @@ class RandomSampler(BaseSampler):
     def sample(self, pos, point_num, batch=None, **kwargs):
         batch_size = pos.shape[0] / point_num
         w = torch.ones((batch_size,point_num),device = pos.device)
-        idx = torch.multinomial(w, self.get_num_to_sample(point_num)).view(-1)
+        idx = torch.multinomial(w, self.get_num_to_sample(point_num)) + (point_num * torch.arange(batch_size,device = pos.device).unsqueeze(-1))
+        idx = idx.view(-1)
         return idx
 
